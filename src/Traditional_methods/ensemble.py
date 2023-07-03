@@ -1,85 +1,53 @@
-from sklearn.ensemble import VotingClassifier
-from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score
-from joblib import load
+import os
 import numpy as np
+from sklearn.ensemble import VotingClassifier
+from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
+from joblib import dump, load
 
-# Load saved models
-knn_model = load('knn_model.joblib')
-decision_tree_model = load('decision_tree_model.joblib')
-logistic_regression_model = load('logistic_regression_model.joblib')
+data_path = os.path.join(os.getcwd(), '..', 'data')
+dataset_path = os.path.join(data_path, 'dataset2')
+
+test_pixels = np.load(os.path.join(dataset_path, 'test_pixels.npy'))
+test_labels = np.load(os.path.join(dataset_path, 'test_labels.npy'))
+
+test_pixels = test_pixels.reshape((-1, 48 * 48))
+
+rf_model = load('rf_model.joblib')
 svm_model = load('svm_model.joblib')
+xgb_model = load('xgb_model.joblib')
 
+ensemble_voting_hard = VotingClassifier(estimators=[('rf', rf_model), ('svm', svm_model), ('xgb', xgb_model)], voting='hard')
+ensemble_voting_soft = VotingClassifier(estimators=[('rf', rf_model), ('svm', svm_model), ('xgb', xgb_model)], voting='soft')
+ensemble_voting_weighted = VotingClassifier(estimators=[('rf', rf_model), ('svm', svm_model), ('xgb', xgb_model)], voting='soft', weights=[1, 2, 1])
 
-def load_data():
-    # Load data
-    test_pixels = np.load(r"D:\Facial Expression Reconization\data\dataset\test_pixels.npy")
-    test_labels = np.load(r"D:\Facial Expression Reconization\data\dataset\test_labels.npy")
-    return test_pixels, test_labels
+ensemble_voting_hard.fit(test_pixels, test_labels)
+ensemble_voting_soft.fit(test_pixels, test_labels)
+ensemble_voting_weighted.fit(test_pixels, test_labels)
 
+ensemble_hard_predictions = ensemble_voting_hard.predict(test_pixels)
+ensemble_soft_predictions = ensemble_voting_soft.predict(test_pixels)
+ensemble_weighted_predictions = ensemble_voting_weighted.predict(test_pixels)
 
-def reshape_data(data):
-    # Reshape data
-    return data.reshape(data.shape[0], -1)
+accuracy_hard = accuracy_score(test_labels, ensemble_hard_predictions)
+accuracy_soft = accuracy_score(test_labels, ensemble_soft_predictions)
+accuracy_weighted = accuracy_score(test_labels, ensemble_weighted_predictions)
 
+f1_hard = f1_score(test_labels, ensemble_hard_predictions, average='macro')
+f1_soft = f1_score(test_labels, ensemble_soft_predictions, average='macro')
+f1_weighted = f1_score(test_labels, ensemble_weighted_predictions, average='macro')
 
-# Load data
-test_pixels, test_labels = load_data()
+precision_hard = precision_score(test_labels, ensemble_hard_predictions, average='macro')
+precision_soft = precision_score(test_labels, ensemble_soft_predictions, average='macro')
+precision_weighted = precision_score(test_labels, ensemble_weighted_predictions, average='macro')
 
-# Reshape data
-test_pixels = reshape_data(test_pixels)
+recall_hard = recall_score(test_labels, ensemble_hard_predictions, average='macro')
+recall_soft = recall_score(test_labels, ensemble_soft_predictions, average='macro')
+recall_weighted = recall_score(test_labels, ensemble_weighted_predictions, average='macro')
 
-# Hard Voting
-voting_hard = VotingClassifier(estimators=[
-    ('knn', knn_model),
-    ('decision_tree', decision_tree_model),
-    ('logistic_regression', logistic_regression_model),
-    ('svm', svm_model)
-], voting='hard')
+dump(ensemble_voting_hard, 'ensemble_hard_model.joblib')
+dump(ensemble_voting_soft, 'ensemble_soft_model.joblib')
+dump(ensemble_voting_weighted, 'ensemble_weighted_model.joblib')
 
-# Soft Voting
-voting_soft = VotingClassifier(estimators=[
-    ('knn', knn_model),
-    ('decision_tree', decision_tree_model),
-    ('logistic_regression', logistic_regression_model),
-    ('svm', svm_model)
-], voting='soft')
-
-# Weighted Voting
-voting_weighted = VotingClassifier(estimators=[
-    ('knn', knn_model),
-    ('decision_tree', decision_tree_model),
-    ('logistic_regression', logistic_regression_model),
-    ('svm', svm_model)
-], voting='soft', weights=[319, 302, 365, 453])  # Adjust the weights as desired
-
-# Fit the voting classifiers
-voting_hard.fit(test_pixels, test_labels)
-voting_soft.fit(test_pixels, test_labels)
-voting_weighted.fit(test_pixels, test_labels)
-
-# Make predictions
-hard_voting_predictions = voting_hard.predict(test_pixels)
-weighted_voting_predictions = voting_weighted.predict(test_pixels)
-
-# Calculate evaluation metrics for each voting method
-hard_voting_accuracy = accuracy_score(test_labels, hard_voting_predictions)
-hard_voting_precision = precision_score(test_labels, hard_voting_predictions, average='weighted')
-hard_voting_recall = recall_score(test_labels, hard_voting_predictions, average='weighted')
-hard_voting_f1 = f1_score(test_labels, hard_voting_predictions, average='weighted')
-
-
-weighted_voting_accuracy = accuracy_score(test_labels, weighted_voting_predictions)
-weighted_voting_precision = precision_score(test_labels, weighted_voting_predictions, average='weighted')
-weighted_voting_recall = recall_score(test_labels, weighted_voting_predictions, average='weighted')
-weighted_voting_f1 = f1_score(test_labels, weighted_voting_predictions, average='weighted')
-
-print("Hard Voting - Accuracy:", hard_voting_accuracy)
-print("Hard Voting - Precision:", hard_voting_precision)
-print("Hard Voting - Recall:", hard_voting_recall)
-print("Hard Voting - F1-score:", hard_voting_f1)
-
-
-print("Weighted Voting - Accuracy:", weighted_voting_accuracy)
-print("Weighted Voting - Precision:", weighted_voting_precision)
-print("Weighted Voting - Recall:", weighted_voting_recall)
-print("Weighted Voting - F1-score:", weighted_voting_f1)
+print('Hard Voting - Accuracy:', accuracy_hard, 'F1-Score:', f1_hard, 'Precision:', precision_hard, 'Recall:', recall_hard)
+print('Soft Voting - Accuracy:', accuracy_soft, 'F1-Score:', f1_soft, 'Precision:', precision_soft, 'Recall:', recall_soft)
+print('Weighted Voting - Accuracy:', accuracy_weighted, 'F1-Score:', f1_weighted, 'Precision:', precision_weighted, 'Recall:', recall_weighted)
