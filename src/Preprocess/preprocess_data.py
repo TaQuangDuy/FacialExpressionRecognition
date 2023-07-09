@@ -1,3 +1,4 @@
+
 import os
 import pandas as pd
 import numpy as np
@@ -27,6 +28,23 @@ test_pixels = []
 test_labels = []
 class_counts = {}
 
+"""for i, label in enumerate(train_labels):
+    img = train_pixels[i]
+
+    if label == 1:  # Disgust label
+        # Determine the number of augmentations to apply based on the minority class ratio
+        minority_ratio = num_samples_per_class[label] / np.min(num_samples_per_class)
+        num_augmentations = max(1, int(minority_ratio * max_num_augmentations))
+
+        for _ in range(num_augmentations):
+            # Choose a random subset of augmentations to apply
+            chosen_augmentations = random.sample(augmentations, random.randint(1, max_num_augmentations))
+
+            # Apply the chosen augmentations to the image
+            img_aug = A.Compose(chosen_augmentations, p=1.0)(image=img)['image']
+            # Add the augmented image and label to the training set
+            aug_train_pixels = np.concatenate((aug_train_pixels, np.expand_dims(img_aug, axis=0)))
+            aug_train_labels.append(label)"""
 for i, row in df.iterrows():
     pixels = np.asarray([int(p) for p in row['pixels'].split()])
     pixels = pixels.reshape((48, 48))
