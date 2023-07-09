@@ -2,7 +2,7 @@
 ## Overview
 Facial expression recognition enables more intuitive human-machine interactions and has applications in diverse domains such as psychology and human-computer interaction, which brings a huge advantage to numerous fields such as health care, education... etc.  
 
-In this report, we investigate the problem of improving prediction accuracy through the application of various advanced methods. Specifically, we explore the implementation of Random Forest (RF), K-Nearest Neighbors (KNN), and XGBoost Classifier as individual classifiers. 
+In this project, we investigate the problem of improving prediction accuracy through the application of various advanced methods. Specifically, we explore the implementation of Random Forest (RF), K-Nearest Neighbors (KNN), and XGBoost Classifier as individual classifiers. 
 
 To further enhance accuracy, we utilize ensemble learning algorithms: Bagging and boosting (AdaBoost) techniques. These approaches aim to reduce overfitting and combine diverse predictions for improved performance. Through empirical evaluations, we assess the effectiveness of these methods in achieving higher accuracy. 
 ## Setup
